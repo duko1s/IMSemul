@@ -20,15 +20,167 @@ def default(o):
 db_path_name = 'ibd_content'
 db_path = Path(db_path_name)
 # файл ядро СУБД ИБД
-root_core_name = '.core_ibd_mgmnt.json'
+root_core_name = '_meta.json'
 root_core = db_path / root_core_name
 
+
+"""
+Множество корней ИБД  решающих одну и ту же задачу хранения и 
+управления одними типами данных.
+В нашем случае проект - модуль - деталь
+"""
 class Roots():
     def __init__(self):
-        self.load_roots()
+        self.projects = []
+        self.load()
+        self.current = None
 
-    def load_roots(self):
-        self.roots = []
+    # загрузить структуру с диска
+    def load(self):
+        if root_core.exists():
+            with open(root_core, 'r') as f:
+                projects = json.load(f)
+            for project in projects:
+                self.projects.append(Project(**project))
+    
+    # сохранить структуру на диск
+    def save(self):
+        result = []
+        for item in self.projects:
+            result.append(item.to_dict())
+        j_dump = json.dumps(result, indent=2, default=default)
+        # print(j_dump)
+        with open(root_core, 'w') as f:
+            f.write(j_dump)
+    
+    # добавить новую базу данных - проект
+    def add(self, project):
+        self.projects.append(project)
+        self.save()
+    
+    # отобразить список баз данных 
+    def list(self):
+        if not self.projects:
+            print("ИБД нет! создайте хоть одну базу!")
+        for root in self.projects:
+            print(root)
+
+    # выбрать имеющуюся базу данных
+    def select(self, index):
+        if self.current is not None:
+            #os.chdir(db_path)
+            self.current = None
+        if 0 <= index < len(self.projects):
+            self.current = index
+            root = self.projects[index]
+            #os.chdir(root.path)
+        return root
+    
+"""
+    Корень ИБД. Это папка которая будет содержать определнную иерархическую базу
+    данных (по сути большая область последовательности байтов на первых дискам
+    IBM - где еще только зарождается понятие файловой системы).
+    Имя проекта это и есть корень: его характеризует имя, описание, 
+    время начала проекта и служебная информация - путь хранения информации и 
+    связь с дочерними объектами - модулями проекта.
+"""
+class Project():
+    META = '_meta.json'
+    def __init__(self, name, description='', start_date=None,
+                 path=None, modules = []):
+        if not db_path.exists():
+            db_path.mkdir()
+        if path is None:
+            path = db_path / name
+            if not path.exists():
+                path.mkdir()
+            else:
+                raise "Проект с таким именем существует!"
+        self.path = Path(path)
+        self.name = name
+        self.description = description
+        if start_date:
+            self.start_date = datetime.datetime.fromisoformat(start_date)
+        else:
+            self.start_date = datetime.datetime.now()
+        self.modules = modules
+        self.current = None
+        
+    def __str__(self):
+        return f"{self.name} | {self.start_date} | {self.path}"
+    
+    def to_dict(self):
+        return self.__dict__
+    
+    
+    def load(self):
+        meta = self.path / self.META
+        if meta:
+            with open(meta, 'r') as f:
+                modules = json.load(f)
+            for module in modules:
+                self.modules.append(Module(**module))
+
+    def save(self):
+        result = []
+        meta = self.path / self.META
+        for item in self.modules:
+            result.append(item.to_dict())
+        j_dump = json.dumps(result, indent=2, default=default)
+        # print(j_dump)
+        with open(meta, 'w') as f:
+            f.write(j_dump)
+
+    # добавить модуль космического коробля
+    def add(self, module):
+        self.modules.append(module)
+        self.save()
+
+    def list(self):
+        if not self.modules:
+            print("Модулей нет!")
+        for module in self.modules:
+            print(module)
+
+    def select(self, index):
+        if self.current is not None:
+            #os.chdir(db_path)
+            self.current = None
+        if 0 <= index < len(self.modules):
+            self.current = index
+            module = self.modules[index]
+            #os.chdir(root.path)
+        return module
+
+    
+
+"""
+Модуль имеет такие характеристики как название, описание назначения, 
+масса, габариты, 
+картинка внешнего вида (общий макет).
+Общий макет в те далекие времена не могли еще хранить в виде файлов
+хранилась структурная информацяи где взять альбом с рисунками и чертежами, в виде
+стелаж-полка-папка.
+Так же мы храним служебную информацию, откуда считать метаинформацию по каждым
+экземплярам модулей, в нашем случае папка в файловой системе.
+"""
+class Module():
+    META = '_meta.json'
+    def __init__(self, name, description="", path=None, 
+                 ):
+        self.name = name
+        self.description = description
+        if path is None:
+            current_root = Path(".")
+            self.path = current_root / name
+        else:
+            self.path = path
+        
+    # Добавить модуль
+    def add(self, child):
+        self.children.append(child)
+
+    def load(self):
         if root_core.exists():
             with open(root_core, 'r') as f:
                 roots = json.load(f)
@@ -54,32 +206,23 @@ class Roots():
         for root in self.roots:
             print(root)
 
-class Root():
-    """
-    Корень ИБД. Это папка которая будет содержать файлы с записями 
-    и атрибутами, а так же вложенные папки с предками.
-    """
-    def __init__(self, name, description='', start_date=None, path=None):
-        if not db_path.exists():
-            db_path.mkdir()
-        if path is None:
-            path = db_path / name
-            if not path.exists():
-                path.mkdir()
-            else:
-                raise "база с таким именем существует!"
-        self.path = Path(path)
-        self.name = name
-        self.description = description
-        if start_date:
-            self.start_date = datetime.datetime.fromisoformat(start_date)
-        else:
-            self.start_date = datetime.datetime.now()
-        
-    def __str__(self):
-        return f"{self.name} | {self.start_date} | {self.path}"
+    def select(self, index):
+        if self.current is not None:
+            #os.chdir(db_path)
+            self.current = None
+        if 0 <= index < len(self.roots):
+            self.current = index
+            root = self.roots[index]
+            #os.chdir(root.path)
+        return root
+
+    # Добавление методов для работы с оборудованием
+    def get_equipment_data(self):
+        return self.equipment_data
+
+    def set_equipment_data(self, data):
+        self.equipment_data = data
+
+
+
     
-    def to_dict(self):
-        return self.__dict__
-
-
