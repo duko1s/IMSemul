@@ -87,7 +87,7 @@ class Roots():
 class Project():
     META = '_meta.json'
     def __init__(self, name, description='', start_date=None,
-                 path=None, modules = []):
+                 path=None, modules = [], current=None):
         if not db_path.exists():
             db_path.mkdir()
         if path is None:
@@ -104,7 +104,7 @@ class Project():
         else:
             self.start_date = datetime.datetime.now()
         self.modules = modules
-        self.current = None
+        self.current = current
         
     def __str__(self):
         return f"{self.name} | {self.start_date} | {self.path}"

@@ -36,8 +36,8 @@ if __name__ == "__main__":
     print("++++++++++++++++++++++++++++++++++++++++")
     # # добавляю две базы
     #roots.add(Project("Апполон1"))
-    # roots.add_root(Root("Апполон2"))
-    # roots.list()
+    #roots.add(Project("Апполон2"))
+    roots.list()
     # # Снова считываю базы т.к. структура уже создана то заполняю структуру
     # # и добавляю еще одну базу и вывожу 
     # roots = Roots()
@@ -45,5 +45,5 @@ if __name__ == "__main__":
     #print("++++++++++++++++++++++++++++++++++++++++")
     #roots.list()
     root = roots.select(0)
-    root.show_modules()
+    root.list()
     
