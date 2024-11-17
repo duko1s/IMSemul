@@ -24,6 +24,9 @@ class IBDShell(cmd.Cmd):
     def do_select(self, arg):
         'выбрать базу данных'
         print('выберает базу данных')
+    def do_save(self, arg):
+        'сохранить базу данных'
+        print('сохраняет базу данных')
 
 if __name__ == '__main__':
     IBDShell().cmdloop()
