@@ -16,32 +16,37 @@ def default(o):
     elif isinstance(o, Path):
         return os.fspath(o)
     
-# путь и имя папки где будет хранится данные
-db_path_name = 'ibd_content'
-db_path = Path(db_path_name)
-# файл ядро СУБД ИБД
-root_core_name = '_meta.json'
-root_core = db_path / root_core_name
-
-
 """
 Множество корней ИБД  решающих одну и ту же задачу хранения и 
 управления одними типами данных.
 В нашем случае проект - модуль - деталь
 """
 class Roots():
+    # путь и имя папки где будет хранится данные
+    db_path_name = 'ibd'
+    db_path = Path(db_path_name)
+    # файл ядро СУБД ИБД
+    root_core_name = '_meta.json'
+    root_core = db_path / root_core_name
+        
     def __init__(self):
         self.projects = []
         self.load()
         self.current = None
-
+    
+    def __len__(self):
+        return len(self.projects)
+    
     # загрузить структуру с диска
     def load(self):
-        if root_core.exists():
-            with open(root_core, 'r') as f:
+        if self.root_core.exists():
+            with open(self.root_core, 'r') as f:
                 projects = json.load(f)
             for project in projects:
                 self.projects.append(Project(**project))
+        else:
+            os.mkdir(self.db_path_name)
+            self.save()
     
     # сохранить структуру на диск
     def save(self):
@@ -50,7 +55,7 @@ class Roots():
             result.append(item.to_dict())
         j_dump = json.dumps(result, indent=2, default=default)
         # print(j_dump)
-        with open(root_core, 'w') as f:
+        with open(self.root_core, 'w') as f:
             f.write(j_dump)
     
     # добавить новую базу данных - проект
@@ -61,19 +66,19 @@ class Roots():
     # отобразить список баз данных 
     def list(self):
         if not self.projects:
-            print("ИБД нет! создайте хоть одну базу!")
-        for root in self.projects:
-            print(root)
+            print("ИБД нет! создайте хотя бы одну базу!")
+        for index, root in enumerate(self.projects):
+            print(f"{index + 1}{'*' if root.current else ''}. {root}")
 
     # выбрать имеющуюся базу данных
-    def select(self, index):
-        if self.current is not None:
-            #os.chdir(db_path)
+    def select(self, index=None):
+        if index is None or index == 0:
+            os.chdir(self.db_path)
             self.current = None
-        if 0 <= index < len(self.projects):
-            self.current = index
-            root = self.projects[index]
-            #os.chdir(root.path)
+        if 1 <= index <= len(self.projects):
+            self.current = index - 1
+            root = self.projects[index - 1]
+            os.chdir(root.path)
         return root
     
 """
@@ -86,16 +91,17 @@ class Roots():
 """
 class Project():
     META = '_meta.json'
+    db_path = Roots.db_path
     def __init__(self, name, description='', start_date=None,
                  path=None, modules = [], current=None):
-        if not db_path.exists():
-            db_path.mkdir()
+        if not self.db_path.exists():
+            self.db_path.mkdir()
         if path is None:
-            path = db_path / name
+            path = self.db_path / name
             if not path.exists():
                 path.mkdir()
             else:
-                raise "Проект с таким именем существует!"
+                raise NameError("Проект с таким именем существует! Имена проектов должны быть уникальны! Дайтье другое имя.")
         self.path = Path(path)
         self.name = name
         self.description = description
@@ -135,6 +141,7 @@ class Project():
     def add(self, module):
         self.modules.append(module)
         self.save()
+
 
     def list(self):
         if not self.modules:

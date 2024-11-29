@@ -4,29 +4,52 @@
 список команд зависит от уровня
 """
 
-# def showMenu(level=0):
-#     if level == 0:
-#         print("ИБД пуста")
-#         print("1. создать корневой узел")
-#         print("2. создать запись в узле")
-#         print("3. создать дочерний узел")
-#         print("4. создать дочерний узел")
 import cmd
+import dbms
+
 class IBDShell(cmd.Cmd):
     intro = 'Эмулятор первой базы данных IMS  введите help или ? чтобы открыть лист команд.\n'
     prompt = '>>> '
     def do_list(self, arg):
         'отобразить список баз данных'
-        print('тут отруображается список баз данных')
+        roots = dbms.Roots()
+        roots.list()
+
     def do_add(self, arg):
-        'добавить базу данных'
-        print('добавляет новую базу данных')
+        'добавить базу данных: обязательно указать имя и необязательно описание'
+        roots = dbms.Roots()
+        try:
+            roots.add(dbms.Project(arg))
+        except NameError as e:
+            print(e)
+        else:
+            print(f"Добавлен новый проект {arg}")
+
     def do_select(self, arg):
-        'выбрать базу данных'
-        print('выберает базу данных')
+        "выбор базы данных (проекта)"
+        roots = dbms.Roots()
+        if len(roots) == 0:
+            print("Проектов (баз данных) нет, нечего выбирать!")
+            return None
+        if arg.isdigit():
+            index = int(arg)
+            if index >= len(roots):
+                return roots.select(int(arg))
+            else:
+                print(f"ВВедите индекс от 1 до {len(roots)}")
+                return None
+        else:
+            print(f"ВВедите индекс от 1 до {len(roots)}, только числовой символ!")
+            return None
+
     def do_save(self, arg):
         'сохранить базу данных'
         print('сохраняет базу данных')
+
+    def do_quit(self, arg):
+        'Выход из программы'
+        print('До свидания!!')
+        return True
 
 if __name__ == '__main__':
     IBDShell().cmdloop()

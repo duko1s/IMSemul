@@ -23,3 +23,5 @@ dist/
 
 # Содержимое ИБД
 ibd_content/
+idb/
+ibd/
