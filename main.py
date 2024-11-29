@@ -16,8 +16,8 @@
 Телефонный справочник
 """
 
-from interface import IBDShell
+from interface_DBMS import DBMSShell
 from dbms import Project, Roots
 
 if __name__ == "__main__":
-    IBDShell().cmdloop()
+    DBMSShell().cmdloop()

@@ -31,8 +31,9 @@ class Roots():
         
     def __init__(self):
         self.projects = []
-        self.load()
         self.current = None
+        self.load()
+        
     
     def __len__(self):
         return len(self.projects)
@@ -41,18 +42,24 @@ class Roots():
     def load(self):
         if self.root_core.exists():
             with open(self.root_core, 'r') as f:
-                projects = json.load(f)
-            for project in projects:
+                read_data = json.load(f)
+            for project in read_data["projects"]:
                 self.projects.append(Project(**project))
+            self.current = read_data["current"]
         else:
             os.mkdir(self.db_path_name)
             self.save()
     
     # сохранить структуру на диск
     def save(self):
-        result = []
+        projects = []
         for item in self.projects:
-            result.append(item.to_dict())
+            projects.append(item.to_dict())
+        current = self.current
+        result = {
+            "current": current,
+            "projects": projects
+        }
         j_dump = json.dumps(result, indent=2, default=default)
         # print(j_dump)
         with open(self.root_core, 'w') as f:
@@ -65,21 +72,29 @@ class Roots():
     
     # отобразить список баз данных 
     def list(self):
+        print(self.current)
         if not self.projects:
             print("ИБД нет! создайте хотя бы одну базу!")
         for index, root in enumerate(self.projects):
-            print(f"{index + 1}{'*' if root.current else ''}. {root}")
+            print(f"{index + 1}{'*' if self.current == index else ''}. {root}")
 
     # выбрать имеющуюся базу данных
-    def select(self, index=None):
-        if index is None or index == 0:
-            os.chdir(self.db_path)
-            self.current = None
+    def select(self, index):
         if 1 <= index <= len(self.projects):
             self.current = index - 1
-            root = self.projects[index - 1]
-            os.chdir(root.path)
-        return root
+            # root = self.projects[index - 1]
+            # os.chdir(root.path)
+        else:
+            print("dsdfg")
+        self.save()
+
+    def unselect(self):
+        self.current = None
+        self.save()
+
+    def use(self):
+        if self.current:
+            return self.projects[self.current]
     
 """
     Корень ИБД. Это папка которая будет содержать определнную иерархическую базу
@@ -90,7 +105,7 @@ class Roots():
     связь с дочерними объектами - модулями проекта.
 """
 class Project():
-    META = '_meta.json'
+    META = '_meta_prj.json'
     db_path = Roots.db_path
     def __init__(self, name, description='', start_date=None,
                  path=None, modules = [], current=None):
