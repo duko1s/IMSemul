@@ -25,3 +25,6 @@ dist/
 ibd_content/
 idb/
 ibd/
+*.zip
+*.png
+*.bmp
