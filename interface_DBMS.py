@@ -9,7 +9,7 @@ import cmd
 import dbms
 import shutil
 import os
-from interface_DB import IBDShell
+from interface_IDB import IBDShell
 
 class DBMSShell(cmd.Cmd):
     intro = 'Эмулятор первой базы данных IMS  введите help или ? чтобы открыть лист команд.\n'
@@ -75,7 +75,7 @@ class DBMSShell(cmd.Cmd):
     def do_use(self, arg):
         "Переход в базу данных: предварительно выбрать базу данных командой select"
         roots = dbms.Roots()
-        if roots.current:
+        if roots.current is not None:
             IBDShell(roots.use()).cmdloop()
         else:
             print("Необходимо сначала выбрать базу данных")

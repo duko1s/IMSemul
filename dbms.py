@@ -72,7 +72,6 @@ class Roots():
     
     # отобразить список баз данных 
     def list(self):
-        print(self.current)
         if not self.projects:
             print("ИБД нет! создайте хотя бы одну базу!")
         for index, root in enumerate(self.projects):
@@ -85,7 +84,7 @@ class Roots():
             # root = self.projects[index - 1]
             # os.chdir(root.path)
         else:
-            print("dsdfg")
+            print(f"Индекс в переделах от 1 до {len(self.projects)}")
         self.save()
 
     def unselect(self):
@@ -93,7 +92,7 @@ class Roots():
         self.save()
 
     def use(self):
-        if self.current:
+        if self.current is not None:
             return self.projects[self.current]
     
 """

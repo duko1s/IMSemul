@@ -11,6 +11,7 @@ import os
 class IBDShell(cmd.Cmd):
     def __init__(self, project):
         cmd.Cmd.__init__(self)
+        print(project)
         name = project.name
         description = project.description
         self.prompt = f"{name}>>> "
