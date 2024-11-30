@@ -50,7 +50,7 @@ with open("test.bmp","w+b") as f:
     print("write pixels on bmp file....")
     for line in frame:
         for pixel in line:
-            pixel = np.append(pixel, z[0])
+            pixel = np.append(pixel, z[0]) # добавил нулевой байт как альфаканал - нужно по стандарту формата файла
             f.write(pixel)
     # f.write(b'\xFF\x00\x00\x7F')#255 0 0 127 Blue (Alpha: 127), Pixel (1,0)
     # f.write(b'\x00\xFF\x00\x7F')#0 255 0 127 Green (Alpha: 127), Pixel (1,1)
